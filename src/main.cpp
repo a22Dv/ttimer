@@ -1,7 +1,9 @@
-#include <print>
+#include "cli.hpp"
 
-int main(int argc, char** argv)
+using namespace tmr;
+
+int main(int argc, char **argv)
 {
-      
-    
+    Arguments args = parse_args(argc, argv);
+    return 0;
 }
