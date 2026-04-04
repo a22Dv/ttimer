@@ -1,0 +1,4 @@
+build/
+ttimer
+*.o
+compile_commands.json
