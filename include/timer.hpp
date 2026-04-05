@@ -89,7 +89,7 @@ class Timer
     chr::nanoseconds remaining_duration() const noexcept
     {
         /// NOTE: `cycle()` should ideally be run before this.
-        return _tend - _tcurrent;
+        return std::max(_tend - _tcurrent, chr::nanoseconds{0});
     }
 
     // Returns the elapsed time of the timer (excluding pauses).

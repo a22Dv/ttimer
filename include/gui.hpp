@@ -13,6 +13,7 @@ class GUI : public UI
 
     void launch() override;
     void update() override;
+    void quit() override;
 };
 
 }  // namespace tmr

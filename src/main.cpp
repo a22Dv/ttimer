@@ -1,3 +1,11 @@
+
+/**
+ * TODO:
+ * - Implement alarm
+ * - Implement GUI
+ * - Implement TUI ASCII-art renderer
+ */
+
 #ifdef NDEBUG
 #include <print>
 #endif
