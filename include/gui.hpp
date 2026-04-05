@@ -1,13 +1,12 @@
 #pragma once
 
 #include "ui.hpp"
-
 namespace tmr
 {
 
 class Application;
 
-class TUI : public UI
+class GUI : public UI
 {
    public:
     using UI::UI;
