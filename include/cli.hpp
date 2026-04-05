@@ -19,10 +19,11 @@ namespace fs = std::filesystem;
  * -ng / --nogui: Don't launch the GUI, goes to a terminal window instead.
  */
 struct Arguments {
-    bool loop;
-    bool launch_gui;
+    bool loop = false;
+    bool launch_gui = true;
 
     chr::nanoseconds timer_duration;
+    chr::sys_time<chr::nanoseconds> application_started;
     fs::path alarm_path;
 };
 

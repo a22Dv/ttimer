@@ -19,20 +19,18 @@ class Timer
 {
    public:
     Timer(chr::nanoseconds duration) noexcept
-        : time_start{chr::steady_clock::now()},
-          time_current{time_start},
-          time_end{time_start + duration}
+        : _tstart{chr::steady_clock::now()}, _tcurrent{_tstart}, _tend{_tstart + duration}
     {
     }
 
     // Checks the current time and returns the state.
     TimerState cycle() noexcept
     {
-        if (paused) {
+        if (_paused) {
             return TimerState::ONGOING;
         }
-        time_current = chr::steady_clock::now();
-        if (time_current >= time_end) {
+        _tcurrent = chr::steady_clock::now();
+        if (_tcurrent >= _tend) {
             return TimerState::END;
         }
         return TimerState::ONGOING;
@@ -41,10 +39,10 @@ class Timer
     // Resets the timer with the given duration at construction.
     void restart() noexcept
     {
-        const auto dur = time_end - time_start;
-        time_start = chr::steady_clock::now();
-        time_current = time_start;
-        time_end = time_start + dur;
+        const auto dur = _tend - _tstart;
+        _tstart = chr::steady_clock::now();
+        _tcurrent = _tstart;
+        _tend = _tstart + dur;
     }
 
     /**
@@ -52,16 +50,16 @@ class Timer
      * Returns a boolean indicating the operation's success.
      *
      * NOTE:
-     * Calling `pause()` on a paused timer does not change its
+     * Calling `pause()` on a _paused timer does not change its
      * state and simply returns `false`.
      */
     bool pause() noexcept
     {
-        if (paused) [[unlikely]] {
+        if (_paused) [[unlikely]] {
             return false;
         }
-        time_current = chr::steady_clock::now();
-        paused = true;
+        _tcurrent = chr::steady_clock::now();
+        _paused = true;
         return true;
     }
 
@@ -70,20 +68,20 @@ class Timer
      * Returns a boolean indicating the operation's success.
      *
      * NOTE:
-     * Calling `unpause()` on an unpaused timer does not change its
+     * Calling `unpause()` on an un_paused timer does not change its
      * state and simply returns `false`.
      */
     bool unpause() noexcept
     {
-        if (!paused) [[unlikely]] {
+        if (!_paused) [[unlikely]] {
             return false;
         }
         const auto ctime = chr::steady_clock::now();
-        const auto pause_dur = ctime - time_current;
-        time_current = ctime;
-        time_end += pause_dur;
-        time_spent_paused += pause_dur;
-        paused = false;
+        const auto pause_dur = ctime - _tcurrent;
+        _tcurrent = ctime;
+        _tend += pause_dur;
+        _tspentpaused += pause_dur;
+        _paused = false;
         return true;
     }
 
@@ -91,24 +89,24 @@ class Timer
     chr::nanoseconds remaining_duration() const noexcept
     {
         /// NOTE: `cycle()` should ideally be run before this.
-        return time_end - time_current;
+        return _tend - _tcurrent;
     }
 
     // Returns the elapsed time of the timer (excluding pauses).
     chr::nanoseconds elapsed() const noexcept
     {
         /// NOTE: `cycle()` should ideally be run before this.
-        const auto real_elapsed = time_current - time_start;
-        return real_elapsed - time_spent_paused;
+        const auto real_elapsed = _tcurrent - _tstart;
+        return real_elapsed - _tspentpaused;
     }
 
    private:
-    SteadyTime time_start;
-    SteadyTime time_current;
-    SteadyTime time_end;
-    
-    chr::nanoseconds time_spent_paused;
-    bool paused = false;
+    SteadyTime _tstart;
+    SteadyTime _tcurrent;
+    SteadyTime _tend;
+
+    chr::nanoseconds _tspentpaused;
+    bool _paused = false;
 };
 
 }  // namespace tmr
