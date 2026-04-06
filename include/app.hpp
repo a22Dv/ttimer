@@ -10,7 +10,7 @@ namespace tmr
 class Application
 {
    public:
-    Application(Arguments &args);
+    Application(ApplicationState &initstate);
     void launch();
 
     /// Runs a single cycle of the timer. Returns a boolean whether this should still be called.
@@ -24,13 +24,16 @@ class Application
      *  - `false` (if it was unpaused)
      */
     bool toggle_pause();
+    bool toggle_loop();
+
+    const ApplicationState &state() const noexcept { return _state; }
 
     /// Restarts the internal timer.
     void restart();
     const Timer &timer() const noexcept { return _timer; }
 
    private:
-    Arguments _args{};
+    ApplicationState _state{};
     std::unique_ptr<UI> _ui = nullptr;
     Timer _timer;
 };

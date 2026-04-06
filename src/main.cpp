@@ -1,4 +1,3 @@
-
 /**
  * TODO:
  * - Implement alarm
@@ -6,6 +5,7 @@
  * - Implement TUI ASCII-art renderer
  */
 
+#include <clocale>
 #ifdef NDEBUG
 #include <print>
 #endif
@@ -23,12 +23,13 @@ using namespace tmr;
 
 int main(int argc, char **argv)
 {
-    Arguments args = parse_args(argc, argv);
+    setlocale(LC_ALL, "");
+    ApplicationState initstate = parse_args(argc, argv);
 
 #ifdef NDEBUG
     try {
 #endif
-        Application app{args};
+        Application app{initstate};
         app.launch();
 
 #ifdef NDEBUG
@@ -42,4 +43,3 @@ int main(int argc, char **argv)
 #endif
     return 0;
 }
-
