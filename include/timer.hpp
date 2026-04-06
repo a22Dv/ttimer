@@ -7,6 +7,8 @@ namespace tmr
 
 namespace chr = std::chrono;
 
+using namespace std::chrono_literals;
+
 using SteadyTime = chr::time_point<chr::steady_clock>;
 
 enum class TimerState { END, ONGOING };
@@ -19,7 +21,10 @@ class Timer
 {
    public:
     Timer(chr::nanoseconds duration) noexcept
-        : _tstart{chr::steady_clock::now()}, _tcurrent{_tstart}, _tend{_tstart + duration}
+        : _tstart{chr::steady_clock::now()},
+          _tcurrent{_tstart},
+          _tend{_tstart + duration},
+          _tduration{duration}
     {
     }
 
@@ -39,10 +44,11 @@ class Timer
     // Resets the timer with the given duration at construction.
     void restart() noexcept
     {
-        const auto dur = _tend - _tstart;
         _tstart = chr::steady_clock::now();
         _tcurrent = _tstart;
-        _tend = _tstart + dur;
+        _tend = _tstart + _tduration;
+        _tspentpaused = 0ns;
+        _paused = false;
     }
 
     /**
@@ -104,8 +110,9 @@ class Timer
     SteadyTime _tstart;
     SteadyTime _tcurrent;
     SteadyTime _tend;
+    chr::nanoseconds _tduration;
 
-    chr::nanoseconds _tspentpaused;
+    chr::nanoseconds _tspentpaused = 0ns;
     bool _paused = false;
 };
 

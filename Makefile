@@ -4,7 +4,7 @@ BINDIR  := $(PREFIX)/bin
 CXX := g++
 
 PKGS := gtk4
-CXXFLAGS += -std=c++23 -g -O0
+CXXFLAGS += -std=c++23 -g -O0 
 # CXXFLAGS += $(shell pkg-config --cflags gtk4)
 # LDFLAGS += $(shell pkg-config --libs gtk4)
 

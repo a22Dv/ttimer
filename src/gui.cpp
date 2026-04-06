@@ -9,9 +9,9 @@ void GUI::launch()
 
 }
 
-void GUI::update()
+bool GUI::update()
 {
-
+    return false;
 }
 
 void GUI::quit()

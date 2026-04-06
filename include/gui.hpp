@@ -12,7 +12,7 @@ class GUI : public UI
     using UI::UI;
 
     void launch() override;
-    void update() override;
+    bool update() override;
     void quit() override;
 };
 

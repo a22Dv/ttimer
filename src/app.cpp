@@ -37,6 +37,7 @@ bool Application::cycle()
         case TimerState::END:
             if (_state.loop) {
                 _timer.restart();
+                _timer.cycle();
                 return true;
             }
             return false;

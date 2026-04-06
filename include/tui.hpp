@@ -15,10 +15,11 @@ class TUI : public UI
     using UI::UI;
 
     void launch() override;
-    void update() override;
+    bool update() override;
     void quit() override;
 
    private:
+    bool hide_hotkeys = false;
     termios cterm{};
     termios iterm{};
 };

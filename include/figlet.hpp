@@ -75,15 +75,15 @@ inline FigletFile open_flf(fs::path path)
     // Rendering also assumes the default, as this is purely a character
     // extractor, there is no kerning support.
 
+    // NOTE: Deprecated, but I am not building a UTF-8
+    // parser myself just for this single instance.
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter{};
     for (char c = ' '; c <= '~'; ++c) {
         FChar character{};
 
         std::string line{};
         std::wstring wline{};
 
-        // NOTE: Deprecated, but I am not building a UTF-8
-        // parser myself just for this single instance.
-        std::wstring_convert<std::codecvt_utf8<wchar_t>> converter{};
         while (true) {
             line.clear();
             wline.clear();

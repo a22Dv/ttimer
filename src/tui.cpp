@@ -1,3 +1,11 @@
+/**
+ * tui.cpp
+ *
+ * TODO:
+ * - Refactoring pass REQUIRED.
+ * - Finalize UI interface and render pipeline
+ */
+
 #include "tui.hpp"
 
 #include <sys/ioctl.h>
@@ -6,9 +14,9 @@
 #include <unistd.h>
 
 #include <chrono>
-#include <cmath>
 #include <format>
 #include <print>
+#include <string>
 #include <tuple>
 #include <utility>
 
@@ -22,40 +30,17 @@ namespace
 using namespace tmr;
 using namespace std::chrono_literals;
 
-int reverse_digits(int n)
-{
-    int rn = 0;
-    while (n) {
-        const int d = n % 10;
-        rn *= 10;
-        rn += d;
-        n /= 10;
-    }
-    return rn;
-}
-
-int count_digits(int n)
-{
-    if (n == 0) {
-        return 1;
-    }
-    return std::log10(n) + 1;
-}
-
 void format_number(const fgl::FCharMap &fmap, std::vector<fgl::FChar> &v, int n, int min_dwidth)
 {
-    int rn = reverse_digits(n);
-    const int digits = count_digits(n);
-
+    const std::string nstr = std::to_string(n);
+    const int digits = nstr.size();
     if (digits < min_dwidth) {
         for (int i = digits; i <= min_dwidth - digits; ++i) {
             v.push_back(fmap['0']);
         }
     }
-    for (int i = 0; i < digits; ++i) {
-        const int d = rn % 10;
-        v.push_back(fmap['0' + d]);
-        rn /= 10;
+    for (auto ch : nstr) {
+        v.push_back(fmap[ch]);
     }
 }
 
@@ -139,9 +124,9 @@ void format_number(const fgl::FCharMap &fmap, std::vector<fgl::FChar> &v, int n,
 
 // String, Visual Height, Visual Width, Character Count
 using DisplayOutput = std::tuple<std::vector<std::string>, int, int, int>;
-DisplayOutput get_displaystr(const ApplicationState &state, chr::days days, chr::hours hours,
-                             chr::minutes minutes, chr::seconds seconds,
-                             chr::nanoseconds subseconds)
+DisplayOutput get_displaystr(const ApplicationState &state, bool hide_hints, int dmode,
+                             chr::days days, chr::hours hours, chr::minutes minutes,
+                             chr::seconds seconds, chr::nanoseconds subseconds)
 {
     static const fgl::FigletFile ffile = fgl::open_flf("./data/ANSI Shadow.flf");
 
@@ -151,8 +136,7 @@ DisplayOutput get_displaystr(const ApplicationState &state, chr::days days, chr:
     const int sc = seconds.count();
 
     auto [dstr, vh, vw, cc] = [&] {
-        const int mode = 1;  // Hardcoded (test)
-        switch (mode) {
+        switch (dmode) {
             case 0: return display_labeled_ver(ffile, dc, hc, mc, sc);
             case 1: return display_timestamp_ver(ffile, dc, hc, mc, sc);
             default: std::unreachable();
@@ -164,14 +148,16 @@ DisplayOutput get_displaystr(const ApplicationState &state, chr::days days, chr:
     const auto lctime = chr::current_zone()->to_local(chr::system_clock::now() + duration);
     const auto lctime_r = chr::round<chr::seconds>(lctime);
 
-    dstr.push_back(std::format("{:^{}}", "", vw));
-    dstr.push_back(std::format("{:^{}}", std::format(" -- {} -- ", lctime_r), vw));
-    dstr.push_back(std::format("{:^{}}", "", vw));
+    dstr.push_back(std::format(""));
+    dstr.push_back(std::format("{}", std::format(" -- {:%b. %d - %I:%M %p} -- ", lctime_r)));
+    dstr.push_back(std::format(""));
 
     const char *paused_choice = state.paused ? "Play" : "Pause";
     const char *loop_choice = state.loop ? "Unloop" : "Loop";
-    const std::string substr = std::format("[P] {} [L] {} [Q] Quit", paused_choice, loop_choice);
-    dstr.push_back(std::format("{:^{}}", substr, vw));
+    const std::string substr = hide_hints ? ""
+                                          : std::format("[P] {} [L] {} [C] Cycle [H] Hide [Q] Quit",
+                                                        paused_choice, loop_choice);
+    dstr.push_back(substr);
     return {dstr, vh, vw, cc};
 }
 
@@ -215,29 +201,28 @@ void TUI::launch()
     std::fflush(stdout);
 
     bool terminate = false;
-    auto next_tick = chr::steady_clock::now() + chr::seconds{1};
-    while (_app.cycle() && !terminate) {
-        update();
-
-        // Blocking until timeout has passed, or user entered input, whichever comes first.
-        const auto now = chr::steady_clock::now();
-        const auto timeout = next_tick < now ? 0ns : next_tick - now;
-        const char input = get_input_timeout(chr::floor<chr::microseconds>(timeout));
-        const auto timeout_duration = chr::steady_clock::now() - now;
-        if (timeout_duration >= timeout) {
-            next_tick += chr::seconds{1};
-        }
+    while (update() && !terminate) {
+        
+        // Timeout has to align to "true" second. Decreasing timeout
+        // results in less sampling drift at the cost of more frequent wake-up times.
+        // Instead, we aim to wake up exactly when the timer updates, as OS guarantees
+        // actual_sleep_duration >= given_sleep_duration.
+        const auto remdur = _app.timer().remaining_duration();
+        const auto offset = remdur - chr::floor<chr::seconds>(remdur);
+        const char input = get_input_timeout(chr::floor<chr::microseconds>(offset));
         switch (input) {
             case 'q': terminate = true; break;
             case 'p': _app.toggle_pause(); break;
             case 'l': _app.toggle_loop(); break;
+            case 'h': hide_hotkeys ^= 1; break;
+            case 'c': _app.set_displaymode((_app.displaymode() + 1) & 1); break;
             case 0x03: terminate = true; break;  // Ctrl+C SIGINT
             default: break;
         }
     }
 }
 
-void TUI::update()
+bool TUI::update()
 {
     std::print("\e[H");
     static winsize w = {};
@@ -252,7 +237,7 @@ void TUI::update()
         w = wcurrent;
     }
 
-    _app.cycle();
+    const bool cycle_res = _app.cycle();
     const chr::nanoseconds rdur = _app.timer().remaining_duration();
     const chr::days rday = chr::floor<chr::days>(rdur);
     const chr::hh_mm_ss split{rdur % chr::days{1}};
@@ -261,11 +246,11 @@ void TUI::update()
     const auto minutes = split.minutes();
     const auto seconds = split.seconds();
     const auto subseconds = split.subseconds();
-    const auto [dstr, vh, vw, cc] =
-        get_displaystr(_app.state(), rday, hours, minutes, seconds, subseconds);
+    const auto [dstr, vh, vw, cc] = get_displaystr(_app.state(), hide_hotkeys, _app.displaymode(),
+                                                   rday, hours, minutes, seconds, subseconds);
 
     if (w.ws_col < vw || w.ws_row < vh) {
-        return;  // Do not display if cut off.
+        return cycle_res;  // Do not display if cut off.
     }
     const int xpos = (w.ws_col - vw + 1) / 2;
     const int ypos = (w.ws_row - vh + 1) / 2;
@@ -279,10 +264,12 @@ void TUI::update()
         std::print("{}", row);
     }
     for (int i = 0; i < 4; ++i) {  // Subtext.
-        std::print("\e[{};{}H\e[2K", ypos + vh + i, xpos);
-        std::print("{}", dstr[cc * vh + i]);
+        const auto &str = dstr[cc * vh + i];
+        std::print("\e[{};{}H\e[2K", ypos + vh + i, (w.ws_col - str.size() + 1) / 2);
+        std::print("{}", str);
     }
     std::fflush(stdout);
+    return cycle_res;
 }
 
 void TUI::quit()

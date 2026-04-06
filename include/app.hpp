@@ -32,9 +32,12 @@ class Application
     void restart();
     const Timer &timer() const noexcept { return _timer; }
 
+    void set_displaymode(int n) noexcept { display_mode = n; }
+    int displaymode() const noexcept { return display_mode; }
    private:
     ApplicationState _state{};
     std::unique_ptr<UI> _ui = nullptr;
+    int display_mode = 0;
     Timer _timer;
 };
 

@@ -196,11 +196,11 @@ std::pair<chr::nanoseconds, DurationType> parse_duration(std::string_view argume
 namespace tmr
 {
 
-Arguments parse_args(int argc, const char *const *argv)
+ApplicationState parse_args(int argc, const char *const *argv)
 {
     bool duration_received = false;
     int wait_for_arg = 0;
-    Arguments args{};
+    ApplicationState args{};
 
     if (argc < 2) [[unlikely]] {
         throw std::runtime_error(ERR_STR("Insufficient arguments."));

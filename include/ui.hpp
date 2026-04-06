@@ -12,7 +12,7 @@ class UI
     UI(Application &application) : _app{application} {}
     virtual ~UI() = default;
     virtual void launch() = 0;
-    virtual void update() = 0;
+    virtual bool update() = 0;
     virtual void quit() = 0;
 
    protected:
