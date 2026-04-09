@@ -20,13 +20,14 @@
 #include <tuple>
 #include <utility>
 
-#include "app.hpp"
 #include "figlet.hpp"
-#include "types.hpp"
+#include "app.hpp"
+#include "utils.hpp"
 
 namespace
 {
 
+namespace chr = std::chrono;
 using namespace tmr;
 using namespace std::chrono_literals;
 
@@ -194,12 +195,15 @@ void TUI::launch()
     // Clear console, hide cursor.
     std::print("\e[2J\e[?25l");
 
+    // NOTE: Refactor to separate function.
     tcgetattr(STDIN_FILENO, &iterm);  // Save config.
     cterm = iterm;
     cfmakeraw(&cterm);
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &cterm);
     std::fflush(stdout);
 
+
+    // NOTE: Refactor to separate function.
     bool terminate = false;
     while (update() && !terminate) {
         

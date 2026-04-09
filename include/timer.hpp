@@ -25,8 +25,7 @@ class Timer
           _tcurrent{_tstart},
           _tend{_tstart + duration},
           _tduration{duration}
-    {
-    }
+    {}
 
     // Checks the current time and returns the state.
     TimerState cycle() noexcept

@@ -1,6 +1,17 @@
 #pragma once
 
-#define ERR_STR(literal_str) "[ERROR]" literal_str
-#define STCXPRC static constexpr const
+#include <cstdint>
+
+namespace tmr {
+
+using u8 = std::uint8_t;
 
 enum class TimeType { ABSOLUTE, DURATION, INVALID };
+
+struct RGB {
+    u8 r = 0;
+    u8 g = 0;
+    u8 b = 0;
+};
+
+}  // namespace tmr

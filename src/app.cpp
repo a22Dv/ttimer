@@ -1,32 +1,20 @@
 #include "app.hpp"
 
 #include <chrono>
-#include <memory>
 
 #include "cli.hpp"
-#include "gui.hpp"
-#include "tui.hpp"
-#include "ui.hpp"
-
 namespace tmr
 {
 
 using namespace std::chrono_literals;
 
-Application::Application(ApplicationState &initstate) : _state{initstate}, _timer{0ns}
-{
-    if (_state.launch_gui) {
-        _ui = std::make_unique<GUI>(*this);
-    } else {
-        _ui = std::make_unique<TUI>(*this);
-    }
-}
+Application::Application(ApplicationState &initstate) : _state{initstate}, _tui{*this}, _timer{0ns} {}
 
 void Application::launch()
 {
     _timer = Timer{_state.timer_duration};
-    _ui->launch();  // Control is given to UI (In the case of GTK specifically)
-    _ui->quit();
+    _tui.launch();  // Control is given to UI (In the case of GTK specifically)
+    _tui.quit();
 }
 
 bool Application::cycle()

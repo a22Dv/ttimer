@@ -2,26 +2,23 @@
 
 #include <termios.h>
 
-#include "ui.hpp"
-
-namespace tmr
-{
+namespace tmr {
 
 class Application;
 
-class TUI : public UI
-{
+class TUI {
    public:
-    using UI::UI;
-
-    void launch() override;
-    bool update() override;
-    void quit() override;
+    TUI(Application &app) : _app{app} {}
+    void launch();
+    bool update();
+    void quit();
 
    private:
     bool hide_hotkeys = false;
     termios cterm{};
     termios iterm{};
+    Application &_app;
 };
+
 
 }  // namespace tmr

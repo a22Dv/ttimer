@@ -1,8 +1,14 @@
 /**
  * TODO:
- * - Implement alarm
- * - Implement GUI
- * - Implement TUI ASCII-art renderer
+ * - Refactor
+ *      - main
+ *      - timer
+ *      - figlet
+ *      - app
+ *      - tui
+ *      - types
+ * - Implement:
+ *      - 
  */
 
 #include <clocale>
@@ -12,7 +18,6 @@
 
 #include "app.hpp"
 #include "cli.hpp"
-#include "gui.hpp"
 #include "tui.hpp"
 
 #ifdef NDEBUG

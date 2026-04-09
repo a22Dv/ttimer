@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <utility>
 
-#include "types.hpp"
+#include "utils.hpp"
 
 namespace
 {
@@ -177,17 +177,18 @@ std::pair<chr::nanoseconds, DurationType> parse_duration(std::string_view argume
         R"R(^(?:\s*(\d+)\s*((?:days|day|d)|(?:hours?|hrs?|h)|(?:minutes?|mins?|m)|(?:seconds?|secs?|s))\s*)+$)R",
         std::regex_constants::icase};
 
-    const char *argdata = argument.data();
-
-    std::cmatch matchobj{};
-    if (std::regex_match(argdata, matchobj, abstime_12h_wunit)) {
+    std::match_results<std::string_view::const_iterator> matchobj{};
+    if (std::regex_match(argument.begin(), argument.end(), matchobj, abstime_12h_wunit)) {
         return {parse_12h_with_unit(matchobj), DurationType::FROM_ABSOLUTE};
-    } else if (std::regex_match(argdata, matchobj, abstime_12h_24h_nunit)) {
+    } else if (std::regex_match(argument.begin(), argument.end(), matchobj,
+                                abstime_12h_24h_nunit)) {
         return {parse_12h24h_no_unit(matchobj), DurationType::FROM_ABSOLUTE};
-    } else if (std::regex_match(argdata, matchobj, abstime_p24h_nunit)) {
+    } else if (std::regex_match(argument.begin(), argument.end(), matchobj, abstime_p24h_nunit)) {
         return {parse_p24h(matchobj), DurationType::FROM_ABSOLUTE};
-    } else {
+    } else if (std::regex_match(argument.begin(), argument.end(), matchobj, direct_duration)) {
         return {parse_direct_dur(argument), DurationType::AS_IS};
+    } else {
+        throw std::runtime_error(ERR_STR("Unknown argument."));
     }
 }
 
