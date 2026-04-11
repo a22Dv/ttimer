@@ -1,19 +1,24 @@
 #pragma once
 
-#include "ui.hpp"
+#include <termios.h>
 
-namespace tmr
-{
+namespace tmr {
 
 class Application;
 
-class TUI : public UI
-{
+class TUI {
    public:
-    using UI::UI;
+    TUI(Application &app) : _app{app} {}
+    void launch();
+    bool update();
+    void quit();
 
-    void launch() override;
-    void update() override;
+   private:
+    bool hide_hotkeys = false;
+    termios cterm{};
+    termios iterm{};
+    Application &_app;
 };
+
 
 }  // namespace tmr

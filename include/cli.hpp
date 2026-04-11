@@ -18,9 +18,10 @@ namespace fs = std::filesystem;
  *               default will be used.
  * -ng / --nogui: Don't launch the GUI, goes to a terminal window instead.
  */
-struct Arguments {
+struct ApplicationState {
     bool loop = false;
     bool launch_gui = true;
+    bool paused = false;
 
     chr::nanoseconds timer_duration;
     chr::sys_time<chr::nanoseconds> application_started;
@@ -28,11 +29,11 @@ struct Arguments {
 };
 
 /**
- * Parses the given arguments into an `Arguments` struct.
+ * Parses the given arguments into an `ApplicationState` struct.
  *
  * NOTE:
  * Internally handles duration finding and interpretation.
  */
-Arguments parse_args(int argc, const char *const *argv);
+ApplicationState parse_args(int argc, const char *const *argv);
 
 }  // namespace tmr

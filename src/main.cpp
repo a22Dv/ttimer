@@ -1,10 +1,11 @@
+#include <clocale>
+
 #ifdef NDEBUG
 #include <print>
 #endif
 
 #include "app.hpp"
 #include "cli.hpp"
-#include "gui.hpp"
 #include "tui.hpp"
 
 #ifdef NDEBUG
@@ -13,14 +14,14 @@
 
 using namespace tmr;
 
-int main(int argc, char **argv)
-{
-    Arguments args = parse_args(argc, argv);
+int main(int argc, char **argv) {
+    setlocale(LC_ALL, "");
+    ApplicationState initstate = parse_args(argc, argv);
 
 #ifdef NDEBUG
     try {
 #endif
-        Application app{args};
+        Application app{initstate};
         app.launch();
 
 #ifdef NDEBUG
@@ -34,4 +35,3 @@ int main(int argc, char **argv)
 #endif
     return 0;
 }
-
