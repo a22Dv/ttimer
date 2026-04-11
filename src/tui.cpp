@@ -12,8 +12,8 @@
 #include <tuple>
 #include <utility>
 
-#include "figlet.hpp"
 #include "app.hpp"
+#include "figlet.hpp"
 #include "utils.hpp"
 
 namespace
@@ -22,6 +22,16 @@ namespace
 namespace chr = std::chrono;
 using namespace tmr;
 using namespace std::chrono_literals;
+
+fs::path get_executable_path()
+{
+    char buffer[PATH_MAX] = {};
+    ssize_t count = readlink("/proc/self/exe", buffer, PATH_MAX);
+    if (count == -1) {
+        return "";
+    }
+    return fs::path(std::string(buffer, count)).parent_path();
+}
 
 void format_number(const fgl::FCharMap &fmap, std::vector<fgl::FChar> &v, int n, int min_dwidth)
 {
@@ -38,7 +48,8 @@ void format_number(const fgl::FCharMap &fmap, std::vector<fgl::FChar> &v, int n,
 }
 
 [[maybe_unused]] std::tuple<std::vector<std::string>, int, int, int> display_timestamp_ver(
-    const fgl::FigletFile &ffile, int days, int hours, int minutes, int seconds)
+    const fgl::FigletFile &ffile, int days, int hours, int minutes, int seconds
+)
 {
     const fgl::FCharMap &fmap = ffile.map;
     std::vector<fgl::FChar> display = {};
@@ -69,7 +80,8 @@ void format_number(const fgl::FCharMap &fmap, std::vector<fgl::FChar> &v, int n,
 }
 
 [[maybe_unused]] std::tuple<std::vector<std::string>, int, int, int> display_labeled_ver(
-    const fgl::FigletFile &ffile, int days, int hours, int minutes, int seconds)
+    const fgl::FigletFile &ffile, int days, int hours, int minutes, int seconds
+)
 {
     // Hardcoded (test).
     const fgl::FCharMap &fmap = ffile.map;
@@ -117,11 +129,13 @@ void format_number(const fgl::FCharMap &fmap, std::vector<fgl::FChar> &v, int n,
 
 // String, Visual Height, Visual Width, Character Count
 using DisplayOutput = std::tuple<std::vector<std::string>, int, int, int>;
-DisplayOutput get_displaystr(const ApplicationState &state, bool hide_hints, int dmode,
-                             chr::days days, chr::hours hours, chr::minutes minutes,
-                             chr::seconds seconds, chr::nanoseconds subseconds)
+DisplayOutput get_displaystr(
+    const ApplicationState &state, bool hide_hints, int dmode, chr::days days, chr::hours hours,
+    chr::minutes minutes, chr::seconds seconds, chr::nanoseconds subseconds
+)
 {
-    static const fgl::FigletFile ffile = fgl::open_flf("./data/ANSI Shadow.flf");
+    static const auto execpath = get_executable_path();
+    static const fgl::FigletFile ffile = fgl::open_flf(execpath / "data" / "ANSI Shadow.flf");
 
     const int dc = days.count();
     const int hc = hours.count();
@@ -147,9 +161,10 @@ DisplayOutput get_displaystr(const ApplicationState &state, bool hide_hints, int
 
     const char *paused_choice = state.paused ? "Play" : "Pause";
     const char *loop_choice = state.loop ? "Unloop" : "Loop";
-    const std::string substr = hide_hints ? ""
-                                          : std::format("[P] {} [L] {} [C] Cycle [H] Hide [Q] Quit",
-                                                        paused_choice, loop_choice);
+    const std::string substr =
+        hide_hints
+            ? ""
+            : std::format("[P] {} [L] {} [C] Cycle [H] Hide [Q] Quit", paused_choice, loop_choice);
     dstr.push_back(substr);
     return {dstr, vh, vw, cc};
 }
@@ -194,11 +209,9 @@ void TUI::launch()
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &cterm);
     std::fflush(stdout);
 
-
     // NOTE: Refactor to separate function.
     bool terminate = false;
     while (update() && !terminate) {
-        
         // Timeout has to align to "true" second. Decreasing timeout
         // results in less sampling drift at the cost of more frequent wake-up times.
         // Instead, we aim to wake up exactly when the timer updates, as OS guarantees
@@ -242,8 +255,9 @@ bool TUI::update()
     const auto minutes = split.minutes();
     const auto seconds = split.seconds();
     const auto subseconds = split.subseconds();
-    const auto [dstr, vh, vw, cc] = get_displaystr(_app.state(), hide_hotkeys, _app.displaymode(),
-                                                   rday, hours, minutes, seconds, subseconds);
+    const auto [dstr, vh, vw, cc] = get_displaystr(
+        _app.state(), hide_hotkeys, _app.displaymode(), rday, hours, minutes, seconds, subseconds
+    );
 
     if (w.ws_col < vw || w.ws_row < vh) {
         return cycle_res;  // Do not display if cut off.

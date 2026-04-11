@@ -18,8 +18,10 @@ namespace chr = std::chrono;
 enum class ArgumentType { LOOP, ALARM };
 enum class DurationType { FROM_ABSOLUTE, AS_IS };
 static const std::unordered_map<std::string, ArgumentType> argtype_map = {
-    {"-l", ArgumentType::LOOP},         {"--loop", ArgumentType::LOOP},
-    {"--alarm", ArgumentType::ALARM},   {"-a", ArgumentType::ALARM},
+    {"-l", ArgumentType::LOOP},
+    {"--loop", ArgumentType::LOOP},
+    {"--alarm", ArgumentType::ALARM},
+    {"-a", ArgumentType::ALARM},
 };
 
 chr::nanoseconds parse_12h_with_unit(std::cmatch &matchobj)
@@ -111,12 +113,24 @@ chr::nanoseconds parse_direct_dur(std::string_view argument)
     static const std::regex indivcomp{
         R"R((\d+)\s*((?:days|day|d)|(?:hours?|hrs?|h)|(?:minutes?|mins?|m)|(?:seconds?|secs?|s)))R"};
     static const std::unordered_map<std::string, chr::seconds> hmap = {
-        {"days", chr::days{1}},      {"day", chr::days{1}},        {"d", chr::days{1}},
-        {"hours", chr::hours{1}},    {"hour", chr::hours{1}},      {"hrs", chr::hours{1}},
-        {"hr", chr::hours{1}},       {"h", chr::hours{1}},         {"minutes", chr::minutes{1}},
-        {"minute", chr::minutes{1}}, {"mins", chr::minutes{1}},    {"min", chr::minutes{1}},
-        {"m", chr::minutes{1}},      {"seconds", chr::seconds{1}}, {"second", chr::seconds{1}},
-        {"secs", chr::seconds{1}},   {"sec", chr::seconds{1}},     {"s", chr::seconds{1}},
+        {"days", chr::days{1}},
+        {"day", chr::days{1}},
+        {"d", chr::days{1}},
+        {"hours", chr::hours{1}},
+        {"hour", chr::hours{1}},
+        {"hrs", chr::hours{1}},
+        {"hr", chr::hours{1}},
+        {"h", chr::hours{1}},
+        {"minutes", chr::minutes{1}},
+        {"minute", chr::minutes{1}},
+        {"mins", chr::minutes{1}},
+        {"min", chr::minutes{1}},
+        {"m", chr::minutes{1}},
+        {"seconds", chr::seconds{1}},
+        {"second", chr::seconds{1}},
+        {"secs", chr::seconds{1}},
+        {"sec", chr::seconds{1}},
+        {"s", chr::seconds{1}},
     };
     std::sregex_iterator cmatch{strarg.begin(), strarg.end(), indivcomp};
     std::sregex_iterator lmatch{};
@@ -179,8 +193,9 @@ std::pair<chr::nanoseconds, DurationType> parse_duration(std::string_view argume
     std::match_results<std::string_view::const_iterator> matchobj{};
     if (std::regex_match(argument.begin(), argument.end(), matchobj, abstime_12h_wunit)) {
         return {parse_12h_with_unit(matchobj), DurationType::FROM_ABSOLUTE};
-    } else if (std::regex_match(argument.begin(), argument.end(), matchobj,
-                                abstime_12h_24h_nunit)) {
+    } else if (std::regex_match(
+                   argument.begin(), argument.end(), matchobj, abstime_12h_24h_nunit
+               )) {
         return {parse_12h24h_no_unit(matchobj), DurationType::FROM_ABSOLUTE};
     } else if (std::regex_match(argument.begin(), argument.end(), matchobj, abstime_p24h_nunit)) {
         return {parse_p24h(matchobj), DurationType::FROM_ABSOLUTE};

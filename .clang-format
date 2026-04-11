@@ -3,7 +3,7 @@ DerivePointerAlignment: false
 PointerAlignment: Right
 IndentWidth: 4
 ColumnLimit: 100
-BreakBeforeBraces: Attach
+BreakBeforeBraces: Linux
 AllowShortCaseLabelsOnASingleLine: true
 BinPackArguments: false
 BreakAfterOpenBracketFunction: true
