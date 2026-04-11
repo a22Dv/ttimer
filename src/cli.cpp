@@ -15,12 +15,11 @@ using namespace std::chrono_literals;
 
 namespace chr = std::chrono;
 
-enum class ArgumentType { LOOP, ALARM, NO_GUI };
+enum class ArgumentType { LOOP, ALARM };
 enum class DurationType { FROM_ABSOLUTE, AS_IS };
 static const std::unordered_map<std::string, ArgumentType> argtype_map = {
     {"-l", ArgumentType::LOOP},         {"--loop", ArgumentType::LOOP},
     {"--alarm", ArgumentType::ALARM},   {"-a", ArgumentType::ALARM},
-    {"--no-gui", ArgumentType::NO_GUI}, {"-n", ArgumentType::NO_GUI},
 };
 
 chr::nanoseconds parse_12h_with_unit(std::cmatch &matchobj)
@@ -212,8 +211,7 @@ ApplicationState parse_args(int argc, const char *const *argv)
         const auto it = argtype_map.find(argument);
         if (it != argtype_map.end()) {
             switch (it->second) {
-                case ArgumentType::LOOP: args.loop = true; break;
-                case ArgumentType::NO_GUI: args.launch_gui = false; break;
+                case ArgumentType::LOOP: args.loop = true; continue;
                 case ArgumentType::ALARM: wait_for_arg = 1; break;
             }
         }
