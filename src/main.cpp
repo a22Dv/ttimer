@@ -1,17 +1,5 @@
-/**
- * TODO:
- * - Refactor
- *      - main
- *      - timer
- *      - figlet
- *      - app
- *      - tui
- *      - types
- * - Implement:
- *      - 
- */
-
 #include <clocale>
+
 #ifdef NDEBUG
 #include <print>
 #endif
@@ -26,8 +14,7 @@
 
 using namespace tmr;
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     setlocale(LC_ALL, "");
     ApplicationState initstate = parse_args(argc, argv);
 

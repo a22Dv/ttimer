@@ -1,11 +1,3 @@
-/**
- * tui.cpp
- *
- * TODO:
- * - Refactoring pass REQUIRED.
- * - Finalize UI interface and render pipeline
- */
-
 #include "tui.hpp"
 
 #include <sys/ioctl.h>

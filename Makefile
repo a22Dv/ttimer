@@ -3,10 +3,8 @@ PREFIX ?= /usr/local
 BINDIR  := $(PREFIX)/bin
 CXX := g++
 
-PKGS := gtk4
-CXXFLAGS += -std=c++23 -g -O0 
-# CXXFLAGS += $(shell pkg-config --cflags gtk4)
-# LDFLAGS += $(shell pkg-config --libs gtk4)
+CXXFLAGS += -std=c++23 -O3 -s 
+LDFLAGS += -static-libgcc -static-libstdc++
 
 SRCDIR := src
 BUILDDIR := build
