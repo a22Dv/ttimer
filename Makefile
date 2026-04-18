@@ -3,7 +3,7 @@ PREFIX ?= /usr/local
 BINDIR  := $(PREFIX)/bin
 CXX := g++
 
-CXXFLAGS += -std=c++23 -O3 -s 
+CXXFLAGS += -std=c++23 -O0 -g
 LDFLAGS += -static-libgcc -static-libstdc++
 
 SRCDIR := src
@@ -26,9 +26,6 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp | $(BUILDDIR)
 
 $(BUILDDIR):
 		mkdir -p $(BUILDDIR)
-		
-install: all
-		install -Dm755 $(NAME) $(DESTDIR)$(BINDIR)/$(NAME)
 
 clean:
 		rm -rf $(BUILDDIR) $(NAME)

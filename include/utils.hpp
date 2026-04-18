@@ -1,50 +1,27 @@
+/// utils.hpp
+///
+/// Generic project utilities such as UTF-8 conversion
+/// and tracking terminal attributes.
+
 #pragma once
 
-#include <chrono>
-#include <print>
+#include <errno.h>
+#include <sys/ioctl.h>
+#include <termios.h>
+#include <unistd.h>
+
+#include <span>
 #include <string>
 #include <string_view>
+#include <system_error>
 
+#include "logs.hpp"
 #include "types.hpp"
-
-namespace tmr
-{
-
-/// Message Type.
-enum class MType {
-    INFO,
-    WARN,
-    CRIT,
-};
-
-/// Outputs a log to stderr.
-inline void output_log(MType type, std::string_view str)
-{
-    static const auto czone = std::chrono::current_zone();
-    const auto ctime = czone->to_local(std::chrono::system_clock::now());
-
-    const char *ctype = nullptr;
-    switch (type) {
-        case MType::INFO: ctype = "INFO"; break;
-        case MType::WARN: ctype = "WARNING"; break;
-        case MType::CRIT: ctype = "CRITICAL"; break;
-    }
-    std::print(stderr, "[{:%F %T}, {}] {}\n", ctime, ctype, str);
-}
-
-}  // namespace tmr
 
 namespace
 {
 
 using namespace tmr;
-
-/// Logs an error and throws an exception.
-[[noreturn]] inline void handle_utf8_err()
-{
-    output_log(MType::CRIT, "Invalid UTF-8 sequence.");
-    throw std::runtime_error("Invalid UTF-8 sequence.");
-}
 
 /// Processes the continuation bytes of a UTF-8 sequence.
 char32_t proc_utf8_contbytes(std::span<const char> bytes)
@@ -54,7 +31,8 @@ char32_t proc_utf8_contbytes(std::span<const char> bytes)
     const usize cb = bytes.size();
     for (usize i = 0; i < cb; ++i) {
         if ((bytes[i] & 0xC0) != 0x80) [[unlikely]] {
-            handle_utf8_err();
+            output_log(MType::CRIT, "Invalid UTF-8 sequence.");
+            throw std::runtime_error("Invalid UTF-8 sequence.");
         }
         ch |= (bytes[i] & 0x3F) << (cb - i - 1) * 6;
     }
@@ -74,7 +52,7 @@ namespace tmr
 inline std::u32string utf8to32(std::string_view str)
 {
     usize i = 0;
-    std::u32string u32str{};
+    std::u32string u32str = {};
     u32str.reserve(str.size());
 
     const usize ssize = str.size();
@@ -104,7 +82,8 @@ inline std::u32string utf8to32(std::string_view str)
             i += 4;
         }
         if (!proc || ch > 0x10FFFF) [[unlikely]] {
-            handle_utf8_err();
+            output_log(MType::CRIT, "Invalid UTF-8 sequence.");
+            throw std::runtime_error("Invalid UTF-8 sequence.");
         }
         u32str.push_back(ch);
     }
@@ -131,7 +110,7 @@ inline std::string utf32to8(std::u32string_view str)
             continue;
 
             // Range-check for UTF-16 surrogate pairs.
-        } else if (ch <= 0xFFFF && ch > 0xD800 && ch > 0xDFFF) {
+        } else if (ch <= 0xFFFF && (ch < 0xD800 || ch > 0xDFFF)) {
             char bytes[] = {char(0xE0), char(0x80), char(0x80)};
             bytes[0] |= (ch >> 12) & 0xF;
             bytes[1] |= (ch >> 6) & 0x3F;
@@ -147,9 +126,47 @@ inline std::string utf32to8(std::u32string_view str)
             utfstr.append(bytes, 4);
             continue;
         }
-        handle_utf8_err();
+        output_log(MType::CRIT, "Invalid UTF-8 sequence.");
+        throw std::runtime_error("Invalid UTF-8 sequence.");
     }
     return utfstr;
 }
+
+struct ConsoleMode {
+    winsize w;
+    termios oconfig;
+    termios cconfig;
+
+    ConsoleMode()
+    {
+        if (tcgetattr(STDOUT_FILENO, &oconfig) == -1) {
+            output_log(MType::CRIT, "Failed to get terminal attributes.");
+            throw std::system_error(errno, std::system_category());
+        }
+
+        cconfig = oconfig;
+        cfmakeraw(&cconfig);
+
+        if (tcsetattr(STDOUT_FILENO, 0, &cconfig) == -1) {
+            output_log(MType::CRIT, "Failed to set terminal attributes.");
+            throw std::system_error(errno, std::system_category());
+        }
+        if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1) {
+            output_log(MType::CRIT, "Failed to get terminal size.");
+            throw std::system_error(errno, std::system_category());
+        }
+    }
+
+    ConsoleMode(const ConsoleMode &) = delete;
+    ConsoleMode operator=(const ConsoleMode &) = delete;
+
+    ~ConsoleMode() noexcept
+    {
+        // No exception as it might result in termination.
+        if (tcsetattr(STDOUT_FILENO, 0, &oconfig) == -1) {
+            output_log(MType::CRIT, "Failed to reset terminal attributes.");
+        }
+    }
+};
 
 }  // namespace tmr
