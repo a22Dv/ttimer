@@ -1,11 +1,11 @@
-#include "cli.hpp"
+#include "legacy/cli.hpp"
 
 #include <chrono>
 #include <regex>
 #include <unordered_map>
 #include <utility>
 
-#include "utils.hpp"
+#include "legacy/utils.hpp"
 
 namespace
 {

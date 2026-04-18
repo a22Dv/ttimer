@@ -4,9 +4,9 @@
 #include <print>
 #endif
 
-#include "app.hpp"
-#include "cli.hpp"
-#include "tui.hpp"
+#include "legacy/app.hpp"
+#include "legacy/cli.hpp"
+#include "legacy/tui.hpp"
 
 #ifdef NDEBUG
 #include "types.hpp"

@@ -1,10 +1,8 @@
 #pragma once
 
-#include <cstddef>
 #include <cstdint>
 
-namespace tmr
-{
+namespace tmr {
 
 using u8 = std::uint8_t;
 using u16 = std::uint16_t;
@@ -19,8 +17,7 @@ using i64 = std::int64_t;
 using f32 = float;
 using f64 = double;
 
-using usize = std::size_t;
-using isize = std::ptrdiff_t;
+enum class TimeType { ABSOLUTE, DURATION, INVALID };
 
 struct RGB {
     u8 r = 0;

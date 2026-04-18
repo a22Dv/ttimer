@@ -1,4 +1,4 @@
-#include "tui.hpp"
+#include "legacy/tui.hpp"
 
 #include <sys/ioctl.h>
 #include <sys/time.h>
@@ -12,9 +12,9 @@
 #include <tuple>
 #include <utility>
 
-#include "app.hpp"
-#include "figlet.hpp"
-#include "utils.hpp"
+#include "legacy/app.hpp"
+#include "legacy/figlet.hpp"
+#include "legacy/utils.hpp"
 
 namespace
 {

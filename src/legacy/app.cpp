@@ -1,8 +1,9 @@
-#include "app.hpp"
+#include "legacy/app.hpp"
 
 #include <chrono>
 
-#include "cli.hpp"
+#include "legacy/cli.hpp"
+
 namespace tmr
 {
 
