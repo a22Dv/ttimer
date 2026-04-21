@@ -22,10 +22,5 @@ using f64 = double;
 using usize = std::size_t;
 using isize = std::ptrdiff_t;
 
-struct RGB {
-    u8 r = 0;
-    u8 g = 0;
-    u8 b = 0;
-};
 
 }  // namespace tmr

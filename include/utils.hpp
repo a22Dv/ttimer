@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <errno.h>
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
@@ -13,7 +12,6 @@
 #include <span>
 #include <string>
 #include <string_view>
-#include <system_error>
 
 #include "logs.hpp"
 #include "types.hpp"
@@ -31,8 +29,7 @@ char32_t proc_utf8_contbytes(std::span<const char> bytes)
     const usize cb = bytes.size();
     for (usize i = 0; i < cb; ++i) {
         if ((bytes[i] & 0xC0) != 0x80) [[unlikely]] {
-            output_log(MType::CRIT, "Invalid UTF-8 sequence.");
-            throw std::runtime_error("Invalid UTF-8 sequence.");
+            throw_log_runtime(MType::CRIT, "Invalid UTF-8 sequence.");
         }
         ch |= (bytes[i] & 0x3F) << (cb - i - 1) * 6;
     }
@@ -82,8 +79,7 @@ inline std::u32string utf8to32(std::string_view str)
             i += 4;
         }
         if (!proc || ch > 0x10FFFF) [[unlikely]] {
-            output_log(MType::CRIT, "Invalid UTF-8 sequence.");
-            throw std::runtime_error("Invalid UTF-8 sequence.");
+            throw_log_runtime(MType::CRIT, "Invalid UTF-8 sequence.");
         }
         u32str.push_back(ch);
     }
@@ -126,8 +122,7 @@ inline std::string utf32to8(std::u32string_view str)
             utfstr.append(bytes, 4);
             continue;
         }
-        output_log(MType::CRIT, "Invalid UTF-8 sequence.");
-        throw std::runtime_error("Invalid UTF-8 sequence.");
+        throw_log_runtime(MType::CRIT, "Invalid UTF-8 sequence.");
     }
     return utfstr;
 }
@@ -140,20 +135,17 @@ struct ConsoleMode {
     ConsoleMode()
     {
         if (tcgetattr(STDOUT_FILENO, &oconfig) == -1) {
-            output_log(MType::CRIT, "Failed to get terminal attributes.");
-            throw std::system_error(errno, std::system_category());
+            throw_log_system(MType::CRIT, "Failed to get terminal attributes.");
         }
 
         cconfig = oconfig;
         cfmakeraw(&cconfig);
 
         if (tcsetattr(STDOUT_FILENO, 0, &cconfig) == -1) {
-            output_log(MType::CRIT, "Failed to set terminal attributes.");
-            throw std::system_error(errno, std::system_category());
+            throw_log_system(MType::CRIT, "Failed to set terminal attributes.");
         }
         if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1) {
-            output_log(MType::CRIT, "Failed to get terminal size.");
-            throw std::system_error(errno, std::system_category());
+            throw_log_system(MType::CRIT, "Failed to get terminal size.");
         }
     }
 
@@ -162,9 +154,9 @@ struct ConsoleMode {
 
     ~ConsoleMode() noexcept
     {
-        // No exception as it might result in termination.
+        // No exception as it might result in `std::terminate`.
         if (tcsetattr(STDOUT_FILENO, 0, &oconfig) == -1) {
-            output_log(MType::CRIT, "Failed to reset terminal attributes.");
+            throw_log_runtime(MType::CRIT, "Failed to reset terminal attributes.");
         }
     }
 };
