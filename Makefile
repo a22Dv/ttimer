@@ -1,7 +1,7 @@
 NAME := ttimer
 CXX := g++
 CXX_DFLAGS := -std=c++23 -Og -g -fno-rtti -Wall -Wpedantic -Wshadow -Werror 
-CXX_RFLAGS := -std=c++23 -O2 -s -fno-rtti -Wall -Wpedantic -Wshadow -Werror 
+CXX_RFLAGS := -std=c++23 -O2 -s -fno-rtti -Wall -Wpedantic -Wshadow -Werror -DNDEBUG
 CXX_RLDFLAGS := -flto
 
 DEBUG_DIR := build/debug
@@ -30,10 +30,10 @@ $(DEBUG_DIR)/$(NAME): $(DEBUG_OBJS)
 $(RELEASE_DIR)/$(NAME): $(RELEASE_OBJS)
 	$(CXX) $^ -o $@ $(CXX_RLDFLAGS)
 
-$(DEBUG_DIR)/%.o: $(SRC_DIR)/%.cpp | $(DEBUG_DIR)
+$(DEBUG_DIR)/%.o: $(SRC_DIR)/%.cpp $(INCLS) | $(DEBUG_DIR)
 	$(CXX) -c $(CXX_DFLAGS) -I$(INCLUDE_DIR) $< -o $@
 
-$(RELEASE_DIR)/%.o: $(SRC_DIR)/%.cpp | $(RELEASE_DIR)
+$(RELEASE_DIR)/%.o: $(SRC_DIR)/%.cpp $(INCLS) | $(RELEASE_DIR)
 	$(CXX) -c $(CXX_RFLAGS) -I$(INCLUDE_DIR) $< -o $@
 
 $(DEBUG_DIR):
