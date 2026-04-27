@@ -1,10 +1,21 @@
 #ifdef NDEBUG
+#include <exception>
 #include <print>
 #endif
 
-#include "app.hpp"
+/*
+    Feature List:
+        - Variable fonts at runtime
+        - Variable colors at runtime
+        - Variable display format at runtime
+        - Smart argument parsing (11:30pm -> N minutes from now)
+        - Configurable for:
+            - Path to .flf fonts
+            - Path to alarm .mp3 file
+            - Default duration, color, font
+*/
 
-using namespace tmr;
+class Application;
 
 int main()
 {
@@ -12,15 +23,9 @@ int main()
     try {
 #endif
 
-        Application app = {};
-        app.initialize();
-        app.launch();
-
 #ifdef NDEBUG
     } catch (const std::exception &e) {
-        std::print(stderr, "{}", e.what());
-        return -1;
+        std::print("{}", e.what());
     }
 #endif
-    return 0;
 }
