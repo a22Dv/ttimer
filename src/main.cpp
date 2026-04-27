@@ -22,7 +22,7 @@ int main()
 #ifdef NDEBUG
     try {
 #endif
-
+        j
 #ifdef NDEBUG
     } catch (const std::exception &e) {
         std::print("{}", e.what());

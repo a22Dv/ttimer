@@ -14,7 +14,7 @@ A minimal TUI timer.
 
 - [ ] Variable fonts at runtime
 - [ ] Variable colors at runtime
-- [ ]Variable display format at runtime
+- [ ] Variable display format at runtime
 - [ ] Smart argument parsing (e.g. 11:30pm -> N minutes from now)
 - Configurable with a:
   - [ ] Path to .flf fonts
